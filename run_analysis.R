@@ -8,6 +8,7 @@ features.vector <- as.vector(features.factor)  #Change to vector
 colnames(comb) <- features.vector  #Add as column names to data frame (Requirement #4)
 
 comb1 <- comb[,grep(c("mean|std"), colnames(comb))] #Extracts mean/stdev columns (Requirement #2)
+comb1 <- comb1[,grep(c("meanFreq"), colnames(comb1), invert=TRUE)] #Excludes "meanFreq" columns
 
 
 testactivities <- read.table("./UCI HAR Dataset/test/y_test.txt")  #Download test activities
@@ -25,14 +26,11 @@ nc <- ncol(comb)
 comb <- comb[c(nc, 1:(nc-1))] #Move activity names column to first column
 
 
-trainsub <- read.table("./UCI HAR Dataset/train/subject_train.txt")
-testsub <- read.table("./UCI HAR Dataset/test/subject_test.txt")
-subcomb <- rbind(testsub,trainsub)
+trainsub <- read.table("./UCI HAR Dataset/train/subject_train.txt") #Download train subject codes
+testsub <- read.table("./UCI HAR Dataset/test/subject_test.txt") #Download test subject codes
+subcomb <- rbind(testsub,trainsub)  #Combine subject files
 subc <- subcomb[,1]
-comb$subject <- subc
+comb$subject <- subc  #Add subject codes to main data frame
 
-tidydata <- aggregate(comb, by = list(Subject = comb$subject, ActivityNames = comb$activitynames), mean, simplify=TRUE, na.rm=TRUE)
-tidydata <- subset(tidydata, select = -c(subject, activitynames))
-
-# combmelt <- melt(comb, id=c(3:563), measure.vars=c(1,564))
-# combdata <- dcast(combmelt, activitynames ~ subject, mean)
+tidydata <- aggregate(comb, by = list(Subject = comb$subject, ActivityNames = comb$activitynames), mean, simplify=TRUE, na.rm=TRUE) #Summarize - mean by each subject/activity pair
+tidydata <- subset(tidydata, select = -c(subject, activitynames))  #Excess column cleanup
